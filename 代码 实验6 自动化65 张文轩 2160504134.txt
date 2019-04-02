@@ -1,0 +1,281 @@
+子函数：
+
+高斯噪声：
+function [P,noise]=GaussNoise(pic,miu,sigm) %添加高斯噪声
+[row,column]=size(pic);
+x=rand(row,column);
+y=rand(row,column);
+N=sigm.*sqrt(-2*log(x)).*cos(2*pi*y)+miu;
+N=N./max(max(N));
+noise=N.*double(max(max(pic)));
+P=noise+double(pic);
+figure
+imshow(P,[])
+
+椒盐噪声：
+function P=SaltPepperNoise(pic,rou1,rou2)%rou1为盐密度，rou2 为椒密度
+[row,column]=size(pic);
+num1=round(rou1*row*column);
+num2=round(rou2*row*column);
+x1=rand(1,num1);
+y1=rand(1,num1);
+X1=floor(x1.*row)+1;
+Y1=floor(y1.*column)+1;
+x2=rand(1,num2);
+y2=rand(1,num2);
+X2=floor(x2.*row)+1;
+Y2=floor(y2.*column)+1;
+for i=1:num1
+    pic(X1(i),Y1(i))=255;
+end
+for i=1:num2
+    pic(X2(i),Y2(i))=0;
+end
+P=pic;
+figure
+imshow(P)
+
+几何均值滤波器：
+function P=GeoMeanFilter(pic,k)%待平滑滤波的图像，k为采用的领域大小
+[row,column]=size(pic);
+P=zeros(row,column);
+p=zeros(row+k-1,column+k-1);
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+        p(i,j)=pic(i-(k-1)/2,j-(k-1)/2);
+    end
+end
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+       sample=1;
+       for h=1:k
+            for l=1:k
+                sample=sample*p(i-(k+1)/2+h,j-(k+1)/2+l);
+            end
+        end
+       P(i-(k-1)/2,j-(k-1)/2)=sample^(1/k/k);
+    end
+end
+figure
+imshow(P,[0,255])
+
+逆谐波均值滤波器:
+
+function P=DeHarmonicsFilter(pic,k,Q)%待平滑滤波的图像，k为采用的领域大小
+[row,column]=size(pic);
+P=zeros(row,column);
+p=zeros(row+k-1,column+k-1);
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+        p(i,j)=pic(i-(k-1)/2,j-(k-1)/2);
+    end
+end
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+       sample=zeros(k,k);
+       S1=zeros(k,k);
+       S2=zeros(k,k);
+       for h=1:k
+            for l=1:k
+                sample(h,l)=p(i-(k+1)/2+h,j-(k+1)/2+l);
+            end
+       end
+       S1=sample.^(Q+1);
+       S2=sample.^Q;
+       P(i-(k-1)/2,j-(k-1)/2)=round(sum(S1(:))/sum(S2(:)));
+    end
+end
+figure
+imshow(P,[0,255])
+最大值滤波器：
+function P=MaxFilter(pic,k)%最大值滤波器，k为采用的领域大小
+[row,column]=size(pic);
+P=zeros(row,column);
+p=zeros(row+k-1,column+k-1);
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+        p(i,j)=pic(i-(k-1)/2,j-(k-1)/2);
+    end
+end
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+       sample=zeros(k,k);
+       for h=1:k
+            for l=1:k
+                sample(h,l)=p(i-(k+1)/2+h,j-(k+1)/2+l);
+            end
+       end
+       P(i-(k-1)/2,j-(k-1)/2)=max(max(sample));
+    end
+end
+figure
+imshow(P,[0,255])
+最小值滤波器：
+function P=MinFilter(pic,k)%最小值滤波器，k为采用的领域大小
+[row,column]=size(pic);
+P=zeros(row,column);
+p=zeros(row+k-1,column+k-1);
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+        p(i,j)=pic(i-(k-1)/2,j-(k-1)/2);
+    end
+end
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+       sample=zeros(k,k);
+       for h=1:k
+            for l=1:k
+                sample(h,l)=p(i-(k+1)/2+h,j-(k+1)/2+l);
+            end
+       end
+       P(i-(k-1)/2,j-(k-1)/2)=min(min(sample));
+    end
+end
+figure
+imshow(P,[0,255])
+中点滤波器：
+function P=MiddleFilter(pic,k)%中点滤波器 ，k为采用的领域大小
+[row,column]=size(pic);
+P=zeros(row,column);
+p=zeros(row+k-1,column+k-1);
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+        p(i,j)=pic(i-(k-1)/2,j-(k-1)/2);
+    end
+end
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+       sample=zeros(k,k);
+       for h=1:k
+            for l=1:k
+                sample(h,l)=p(i-(k+1)/2+h,j-(k+1)/2+l);
+            end
+       end
+       P(i-(k-1)/2,j-(k-1)/2)=round(0.5*(max(max(sample))+min(min(sample))));
+    end
+end
+figure
+imshow(P,[0,255])
+修正的阿尔法均值滤波器：
+function P=AlferMeanFilter(pic,k,dhalf)%阿尔法修正均值滤波器 ，k为采用的领域大小
+[row,column]=size(pic);
+P=zeros(row,column);
+p=zeros(row+k-1,column+k-1);
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+        p(i,j)=pic(i-(k-1)/2,j-(k-1)/2);
+    end
+end
+for i=1+(k-1)/2:row+(k-1)/2
+    for j=1+(k-1)/2:column+(k-1)/2
+       sample=zeros(1,k^2);
+       num=1;
+       for h=1:k
+            for l=1:k
+                sample(num)=p(i-(k+1)/2+h,j-(k+1)/2+l);
+                num=num+1;
+            end
+       end
+       sample=sort(sample(:));
+       sample(1:dhalf)=zeros(1,dhalf);
+       sample(k^2-dhalf+1:k^2)=zeros(1,dhalf);
+       P(i-(k-1)/2,j-(k-1)/2)=round(sum(sample(:))/(k^2-2*dhalf));
+    end
+end
+figure
+imshow(P,[0,255])
+
+
+
+主函数：
+问题1：
+pic=imread('lena.bmp');
+[P,noise]=GaussNoise(pic,0,0.01);
+title('加入均值为0，方差为0.01的高斯噪声')
+%P=imnoise(pic,'gaussian',0,0.02)%高斯噪声 
+%figure 
+%imshow(P)
+[P1,noise]=GaussNoise(pic,0,10);
+title('加入均值为0，方差为0.5的高斯噪声')
+P(find(P<0))=1;
+P(find(P>255))=255;
+MeanFilter(P,7);
+title('算术均值滤波器')
+GeoMeanFilter(P,7);
+title('几何均值滤波器')
+GaussFilter(P,0.1,7);
+title('高斯滤波器');
+DeHarmonicsFilter(P,7,2);
+title('逆谐波均值滤波器(Q为2）')
+MedianFilter(P,7);
+title('中值滤波器')
+MinFilter(P,7);
+title('最小值滤波器')
+MaxFilter(P,7);
+title('最大值滤波器')
+MiddleFilter(P,7);
+title('中点滤波器')
+AlferMeanFilter(P,7,2);
+title('阿尔法均值滤波器')
+AdpMedianFilter(P,19);
+title('自适应中值滤波器')
+
+问题2：
+pic=imread('lena.bmp');
+P=SaltPepperNoise(pic,0.1,0.1);
+title('加入椒盐噪声')
+%MeanFilter(P,7);
+%title('算术均值滤波器')
+DeHarmonicsFilter(P,5,1);
+title('逆谐波均值滤波器(Q为1）')
+DeHarmonicsFilter(P,5,-1);
+title('逆谐波均值滤波器(Q为-1）')
+MedianFilter(P,7);
+title('中值滤波器')
+AdpMedianFilter(P,19);
+title('自适应中值滤波器')
+问题3：
+pic=imread('lena.bmp');
+pic = im2double(pic);
+P_fft=fftshift(fft2(pic));
+[row,column]=size(P_fft);
+x=1:row; 
+y=1:column; 
+[X,Y]=meshgrid(x,y);%生成网格空间 
+H=ones(row,column);
+a=0.1;
+b=0.1;
+t=1;          %设置退化参数
+h=(X-row/2-1).*a+(Y-column/2-1).*b+eps;   
+H=t.*sin(pi.*h).*exp(-1i.*pi.*h)./(pi.*h);
+F=H'.*P_fft; 
+img=ifft2(F);  
+img=abs(img);
+figure
+imshow(img,[]);
+title('退化模糊的图像')
+%加入高斯噪声
+[img1,noise]=GaussNoise(img,0,10);
+title('加入高斯噪声的退化图像')
+%维纳滤波 
+P_fft=F./H';
+P_tuihua=fftshift(fft2(img1));
+x=fftshift(fft2(noise));
+%K=x.*conj(x)./(P_fft.*conj(P_fft));%计算K值  
+K=0.0008
+W=(H.*conj(H))'.*F./(H.*(H.*conj(H)+K'))'; 
+weina_img=abs(ifft2(W)); 
+figure
+imshow(weina_img,[]);
+title('维纳滤波的结果');
+
+P3=[0 -1 0;-1 4 -1;0 -1 0];
+P3_fft=fftshift(fft2(P3,row,column));
+gama=0.005;  %输入伽马参数
+X3=H.*conj(H)+gama*P3_fft.*conj(P3_fft);
+E=H./X3.*F;
+ercheng_img=abs(ifft2(E)); 
+figure
+imshow(ercheng_img,[]);
+title('约束最小乘方滤波的结果');
+
